@@ -2,8 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
 })
 
-document.addEventListener('click', () => {
-    console.log("clicked")
+document.addEventListener('click', (e) => {
+    if (e.target.outerHTML === "<td></td>"){
+        console.log("inside table cell")
+        if (e.target.innerHTML === ""){
+            console.log("cell is empty")
+            
+        }
+    }
+    console.log(e.target)
 })
 
 function makeWeek(){
