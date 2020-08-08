@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
 })
 
+document.addEventListener('click', () => {
+    console.log("clicked")
+})
+
 function makeWeek(){
     const week = document.createElement('div')
     week.innerHTML = `
@@ -47,6 +51,5 @@ function makeCells(){
     for (j=0; j<7; j++){
         cellHTML += "<td></td>"
     }
-    console.log(cellHTML)
     return cellHTML
 }
