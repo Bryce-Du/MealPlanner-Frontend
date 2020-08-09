@@ -11,13 +11,15 @@ document.addEventListener('click', (e) => {
             let cell = e.target
             const rightCol = document.getElementById("right-sidebar")
             // let timeSlot = cell.parentElement.rowIndex
-            const dayCell = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex]
-            const timeCell = cell.parentElement.firstChild
+            const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
+            const timeText = cell.parentElement.firstChild.innerHTML
+            const time = ((cell.parentElement.rowIndex-1)*100)
+            console.log(day + " " + time)
             rightCol.innerHTML = `
-                <h3>Add a meal at ${timeCell.innerHTML} on ${dayCell.innerHTML}</h3>
+                <h3>Add a meal at ${timeText} on ${day}</h3>
                 <form action="${mealURL}" method="POST">
-                    <label>Name:<input name="mealName" id="mealName"></label>
-                    <input type="hidden" name="">
+                    <label>Name:<input name="mealName"></label>
+                    <input type="hidden" name="mealDateTime" value=>
                 </form>
             `
             // cell.id = "blip"
