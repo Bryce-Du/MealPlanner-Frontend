@@ -66,11 +66,21 @@ function submitMeal(name, mealTime){
 
 function renderMeals(mealArray){
     mealArray.forEach(meal => {
-        timeString = meal.attributes.mealtime
-        const date = new Date(timeString.split("T")[0])
-        console.log(date)
-        console.log(timeString.split("T"))
+        let [date, time] = meal.attributes.mealtime.split("T")
+        let dateKey = new Date(date)
+        let dayHeaders = Array.from(document.querySelectorAll(".day-header"))
+        let day = dayHeaders.find(th => th.innerHTML === dateKey.toDateString())
+        let table = document.querySelector("table")
+        let hour = (parseInt(time.substring(0, 2)) + 1)
+        if (!!day) {
+            renderMeal(table.rows[hour].cells[day.cellIndex], meal.attributes)           
+        }
     })
+}
+
+function renderMeal(mealCell, mealAttr){
+    mealCell.setAttribute("class", "bg-primary text-white")
+    mealCell.innerHTML = meal.attributes.name
 }
 
 function fetchMeals(){
@@ -107,7 +117,7 @@ function weekdayHeaders(){
     let today = d.getDate()
     for(i=0; i<7; i++){
         d.setDate(today+i)
-        headerHTML += `<th scope="col">${d.toDateString()}</th>`
+        headerHTML += `<th class="day-header" scope="col">${d.toDateString()}</th>`
     }
     headerHTML += "</tr>"
     return headerHTML
