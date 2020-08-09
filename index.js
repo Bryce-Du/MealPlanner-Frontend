@@ -1,30 +1,51 @@
+const mealURL = "http://localhost:3000/meals"
+
 document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
+    
 })
 
 document.addEventListener('click', (e) => {
     if (e.target.outerHTML === "<td></td>"){
-        console.log("inside table cell")
         if (e.target.innerHTML === ""){
-            console.log("cell is empty")
+            let cell = e.target
+            const rightCol = document.getElementById("right-sidebar")
+            // let timeSlot = cell.parentElement.rowIndex
+            const dayCell = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex]
+            const timeCell = cell.parentElement.firstChild
+            rightCol.innerHTML = `
+                <h3>Add a meal at ${timeCell.innerHTML} on ${dayCell.innerHTML}</h3>
+                <form action="${mealURL}" method="POST">
+                    <label>Name:<input name="mealName" id="mealName"></label>
+                    <input type="hidden" name="">
+                </form>
+            `
+            // cell.id = "blip"
+            // document.getElementById("blip").popover({
+            //     html: true,
+            //     title: "make a new meal",
+            //     content: "new meal form here"
+            // })
+            
+            // failed attempt to use popovers, may revisit
+            
             
         }
     }
-    console.log(e.target)
 })
 
 function makeWeek(){
     const week = document.createElement('div')
     week.innerHTML = `
         <div class="row">
-            <div class="col-3"></div>
-            <div class="col-6">
-                <table class="table table-bordered">
+            <div class="col-3 bg-secondary"></div>
+            <div class="col-6 bg-light">
+                <table class="table table-bordered table-striped">
                     ${weekdayHeaders()}
                     ${makeHours()}
                 </table>
             </div>
-            <div class="col-3"></div>
+            <div class="col-3 bg-secondary" id="right-sidebar"></div>
         </div>
     `
     document.querySelector('.container-fluid').appendChild(week)
@@ -44,11 +65,8 @@ function weekdayHeaders(){
 
 function makeHours(){
     let rowHTML = ""
-    for(i=0; i<2400; i+=100){
-        if (i === 0){i = "0000"}
-        else if (i < 1000){i = "0"+i}
+    for(i=0; i<24; i++){
         rowHTML += `<tr align="right"><th scope="row">${i}</th>${makeCells()}</tr>`
-        i = parseInt(i, 10)
     }
     return rowHTML
 }
