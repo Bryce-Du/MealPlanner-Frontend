@@ -2,7 +2,7 @@ const mealURL = "http://localhost:3000/api/meals"
 
 document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
-    
+    fetchMeals()
 })
 
 document.addEventListener('click', (e) => {
@@ -63,6 +63,26 @@ function submitMeal(name, mealTime){
       .then(function(object){
         console.log(object)
       })
+}
+
+function renderMeals(mealArray){
+    mealArray.forEach(meal => {
+        timeString = meal.attributes.mealtime
+        const date = new Date(timeString.split("T")[0])
+        console.log(date)
+        console.log(timeString.split("T"))
+    })
+}
+
+function fetchMeals(){
+    return fetch(mealURL)
+    .then(function(response){
+        return response.json()
+    })
+    .then(function(object){
+        console.log(object.data)
+        renderMeals(object.data)
+    })
 }
 
 function makeWeek(){
