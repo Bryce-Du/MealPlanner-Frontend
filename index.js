@@ -40,7 +40,7 @@ function makeWeek(){
         <div class="row">
             <div class="col-3 bg-secondary"></div>
             <div class="col-6 bg-light">
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped table-sm">
                     ${weekdayHeaders()}
                     ${makeHours()}
                 </table>
@@ -65,8 +65,13 @@ function weekdayHeaders(){
 
 function makeHours(){
     let rowHTML = ""
+    let hour = ""
     for(i=0; i<24; i++){
-        rowHTML += `<tr align="right"><th scope="row">${i}</th>${makeCells()}</tr>`
+        if (i === 0){hour = "12 am"}
+        else if (i < 12){hour = `${i} am`}
+        else if (i === 12){hour = `${i} pm`}
+        else {hour = `${i-12} pm`}
+        rowHTML += `<tr align="right"><th scope="row">${hour}</th>${makeCells()}</tr>`
     }
     return rowHTML
 }
