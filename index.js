@@ -1,4 +1,4 @@
-const mealURL = "http://localhost:3000/meals"
+const mealURL = "http://localhost:3000/api/meals"
 
 document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
@@ -14,12 +14,13 @@ document.addEventListener('click', (e) => {
             const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
             const timeText = cell.parentElement.firstChild.innerHTML
             const time = ((cell.parentElement.rowIndex-1)*100)
-            console.log(day + " " + time)
+            console.log()
             rightCol.innerHTML = `
                 <h3>Add a meal at ${timeText} on ${day}</h3>
                 <form action="${mealURL}" method="POST">
                     <label>Name:<input name="mealName"></label>
-                    <input type="hidden" name="mealDateTime" value=>
+                    <input type="hidden" name="mealDateTime" value="${day} ${time}">
+                    <input type="submit" value="Add Meal">
                 </form>
             `
             // cell.id = "blip"
@@ -35,6 +36,32 @@ document.addEventListener('click', (e) => {
         }
     }
 })
+
+document.addEventListener("submit", (e) => {
+    console.log(e.target)
+    submitMeal()
+    e.preventDefault()
+})
+
+function submitMeal(name, dateTime){
+    return fetch(mealURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify( {
+          name,
+          dateTime
+        } )
+      } )
+      .then( function ( response ) {
+        return response.json()
+      } )
+      .then( function ( object ) {
+        console.log(object)
+      } )
+}
 
 function makeWeek(){
     const week = document.createElement('div')
