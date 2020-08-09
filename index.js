@@ -13,8 +13,7 @@ document.addEventListener('click', (e) => {
             // let timeSlot = cell.parentElement.rowIndex
             const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
             const timeText = cell.parentElement.firstChild.innerHTML
-            const time = ((cell.parentElement.rowIndex-1)*100)
-            console.log()
+            const time = ((cell.parentElement.rowIndex-1) + ":00")
             rightCol.innerHTML = `
                 <h3>Add a meal at ${timeText} on ${day}</h3>
                 <form action="${mealURL}" method="POST" autocomplete="off">
