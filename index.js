@@ -17,9 +17,9 @@ document.addEventListener('click', (e) => {
             console.log()
             rightCol.innerHTML = `
                 <h3>Add a meal at ${timeText} on ${day}</h3>
-                <form action="${mealURL}" method="POST">
-                    <label>Name:<input name="mealName"></label>
-                    <input type="hidden" name="mealDateTime" value="${day} ${time}">
+                <form action="${mealURL}" method="POST" autocomplete="off">
+                    <label>Name:<input name="name" id="name"></label>
+                    <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
                     <input type="submit" value="Add Meal">
                 </form>
             `
@@ -39,28 +39,30 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener("submit", (e) => {
     console.log(e.target)
-    submitMeal()
+    let name = document.querySelector("#name").value
+    let mealTime = document.querySelector("#mealTime").value
+    submitMeal(name, mealTime)
     e.preventDefault()
 })
 
-function submitMeal(name, dateTime){
+function submitMeal(name, mealTime){
     return fetch(mealURL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
-        body: JSON.stringify( {
-          name,
-          dateTime
-        } )
-      } )
-      .then( function ( response ) {
+        body: JSON.stringify({
+          name: name,
+          mealtime: mealTime
+        })
+      })
+      .then(function(response){
         return response.json()
-      } )
-      .then( function ( object ) {
+      })
+      .then(function(object){
         console.log(object)
-      } )
+      })
 }
 
 function makeWeek(){
