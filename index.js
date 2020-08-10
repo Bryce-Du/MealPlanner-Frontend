@@ -13,37 +13,26 @@ document.addEventListener('click', (e) => {
     if (e.target.outerHTML === "<td></td>"){
         if (e.target.innerHTML === ""){
             let cell = e.target
+            clearLastSelection()
+            cell.setAttribute("class", "bg-success")
             const rightCol = document.getElementById("right-sidebar")
             // let timeSlot = cell.parentElement.rowIndex
             const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
             const timeText = cell.parentElement.firstChild.innerHTML
             const time = ((cell.parentElement.rowIndex-1) + ":00")
-            rightCol.innerHTML = formHTML()
-            // cell.id = "blip"
-            // document.getElementById("blip").popover({
-            //     html: true,
-            //     title: "make a new meal",
-            //     content: "new meal form here"
-            // })
-            
-            // failed attempt to use popovers, may revisit
-            
+            rightCol.innerHTML = `
+                <h3>Add a meal at ${timeText} on ${day}</h3>
+                <form action="${mealURL}" method="POST" autocomplete="off">
+                    <label>Name:<input name="name" id="name"></label>
+                    <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
+                    
+                    <input type="submit" value="Add Meal">
+                </form>
+            `
             
         }
     }
 })
-
-function formHTML(){
-    return `
-        <h3>Add a meal at ${timeText} on ${day}</h3>
-        <form action="${mealURL}" method="POST" autocomplete="off">
-            <label>Name:<input name="name" id="name"></label>
-            <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
-            <
-            <input type="submit" value="Add Meal">
-        </form>
-    `
-}
 
 document.addEventListener("submit", (e) => {
     console.log(e.target)
@@ -167,4 +156,8 @@ function makeCells(){
         cellHTML += "<td></td>"
     }
     return cellHTML
+}
+
+function clearLastSelection(){
+    document.querySelectorAll(".bg-success").forEach(cell => cell.setAttribute("class", ""))
 }
