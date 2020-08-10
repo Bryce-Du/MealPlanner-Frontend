@@ -1,8 +1,12 @@
 const mealURL = "http://localhost:3000/api/meals"
+const ingredientURL = "http://localhost:3000/api/ingredients"
+
+const ingredients = fetchIngredients()
 
 document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
     fetchMeals()
+    
 })
 
 document.addEventListener('click', (e) => {
@@ -14,14 +18,7 @@ document.addEventListener('click', (e) => {
             const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
             const timeText = cell.parentElement.firstChild.innerHTML
             const time = ((cell.parentElement.rowIndex-1) + ":00")
-            rightCol.innerHTML = `
-                <h3>Add a meal at ${timeText} on ${day}</h3>
-                <form action="${mealURL}" method="POST" autocomplete="off">
-                    <label>Name:<input name="name" id="name"></label>
-                    <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
-                    <input type="submit" value="Add Meal">
-                </form>
-            `
+            rightCol.innerHTML = formHTML()
             // cell.id = "blip"
             // document.getElementById("blip").popover({
             //     html: true,
@@ -35,6 +32,18 @@ document.addEventListener('click', (e) => {
         }
     }
 })
+
+function formHTML(){
+    return `
+        <h3>Add a meal at ${timeText} on ${day}</h3>
+        <form action="${mealURL}" method="POST" autocomplete="off">
+            <label>Name:<input name="name" id="name"></label>
+            <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
+            <
+            <input type="submit" value="Add Meal">
+        </form>
+    `
+}
 
 document.addEventListener("submit", (e) => {
     console.log(e.target)
@@ -60,27 +69,33 @@ function submitMeal(name, mealTime){
         return response.json()
       })
       .then(function(object){
-        console.log(object)
+        renderMeal(getCellFromMealTime(object.data.attributes.mealtime), object.data.attributes)
       })
+}
+
+function getCellFromMealTime(mealtimeString){
+    let [date, time] = mealtimeString.split("T")
+    let dateKey = new Date(date)
+    let dayHeaders = Array.from(document.querySelectorAll(".day-header"))
+    let day = dayHeaders.find(th => th.innerHTML === dateKey.toDateString())
+    let hour = (parseInt(time.substring(0, 2)) + 1)
+    let table = document.querySelector("table")
+    if (!!day) {
+        return table.rows[hour].cells[day.cellIndex + 1]           
+    }
 }
 
 function renderMeals(mealArray){
     mealArray.forEach(meal => {
-        let [date, time] = meal.attributes.mealtime.split("T")
-        let dateKey = new Date(date)
-        let dayHeaders = Array.from(document.querySelectorAll(".day-header"))
-        let day = dayHeaders.find(th => th.innerHTML === dateKey.toDateString())
-        let table = document.querySelector("table")
-        let hour = (parseInt(time.substring(0, 2)) + 1)
-        if (!!day) {
-            renderMeal(table.rows[hour].cells[day.cellIndex], meal.attributes)           
-        }
+        renderMeal(getCellFromMealTime(meal.attributes.mealtime), meal.attributes)
     })
 }
 
 function renderMeal(mealCell, mealAttr){
-    mealCell.setAttribute("class", "bg-primary text-white")
-    mealCell.innerHTML = meal.attributes.name
+    if (!!mealCell){
+        mealCell.setAttribute("class", "bg-primary text-white")
+        mealCell.innerHTML = mealAttr.name
+    }
 }
 
 function fetchMeals(){
@@ -91,6 +106,16 @@ function fetchMeals(){
     .then(function(object){
         console.log(object.data)
         renderMeals(object.data)
+    })
+}
+
+function fetchIngredients(){
+    return fetch(ingredientURL)
+    .then(function(response){
+        return response.json()
+    })
+    .then(function(object){
+        console.log(object.data)
     })
 }
 
