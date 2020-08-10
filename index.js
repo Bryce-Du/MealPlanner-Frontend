@@ -1,12 +1,12 @@
 const mealURL = "http://localhost:3000/api/meals"
 const ingredientURL = "http://localhost:3000/api/ingredients"
 
-const ingredients = fetchIngredients()
+let ingredients
 
 document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
     fetchMeals()
-    
+    fetchIngredients()
 })
 
 document.addEventListener('click', (e) => {
@@ -20,13 +20,15 @@ document.addEventListener('click', (e) => {
             const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
             const timeText = cell.parentElement.firstChild.innerHTML
             const time = ((cell.parentElement.rowIndex-1) + ":00")
+            let ingredientFormId = 0
             rightCol.innerHTML = `
                 <h3>Add a meal at ${timeText} on ${day}</h3>
                 <form action="${mealURL}" method="POST" autocomplete="off">
-                    <label>Name:<input name="name" id="name"></label>
+                    <label>Name:<input name="name" id="name"></label><br>
                     <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
-                    
-                    <input type="submit" value="Add Meal">
+                    <label>Ingredients:</label><br>
+                    <input name="ingredient" id="ingredient-${ingredientFormId++}">
+                    <br><br><input type="submit" value="Add Meal">
                 </form>
             `
             
@@ -104,7 +106,8 @@ function fetchIngredients(){
         return response.json()
     })
     .then(function(object){
-        console.log(object.data)
+        ingredients = object.data
+        console.log(ingredients)
     })
 }
 
@@ -129,7 +132,7 @@ function weekdayHeaders(){
     let headerHTML = "<tr><th></th>"
     let d = new Date()
     let today = d.getDate()
-    for(i=0; i<7; i++){
+    for(let i=0; i<7; i++){
         d.setDate(today+i)
         headerHTML += `<th class="day-header" scope="col">${d.toDateString()}</th>`
     }
@@ -140,7 +143,7 @@ function weekdayHeaders(){
 function makeHours(){
     let rowHTML = ""
     let hour = ""
-    for(i=0; i<24; i++){
+    for(let i=0; i<24; i++){
         if (i === 0){hour = "12 am"}
         else if (i < 12){hour = `${i} am`}
         else if (i === 12){hour = `${i} pm`}
@@ -152,7 +155,7 @@ function makeHours(){
 
 function makeCells(){
     let cellHTML = ""
-    for (j=0; j<7; j++){
+    for (let j=0; j<7; j++){
         cellHTML += "<td></td>"
     }
     return cellHTML
@@ -160,4 +163,8 @@ function makeCells(){
 
 function clearLastSelection(){
     document.querySelectorAll(".bg-success").forEach(cell => cell.setAttribute("class", ""))
+}
+
+function autocompleteIngredient(input){
+
 }
