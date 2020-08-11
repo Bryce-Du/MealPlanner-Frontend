@@ -91,24 +91,13 @@ function submitMeal(name, mealTime, ingredients){
 
 function getCellFromMealTime(mealtimeString){
     let time = mealtimeString.split("T")[1]
-    let day = new Date(mealtimeString)
-    let today = new Date()
+    let day = mealtimeString.substr(8,2)
     let dayHeaders = Array.from(document.querySelectorAll(".day-header"))
-    let dayIndex = 0
-    console.log(day.toDateString(), today.toDateString())
-    if (day.toDateString() === today.toDateString()){
-        dayIndex = 1
-    } else {
-        dayIndex = dayHeaders.find(th => th.innerHTML === day.toDateString())
-        if (!!dayIndex) {
-            dayIndex = dayIndex.cellIndex
-        }
-    }
-    console.log(dayIndex)
+    let dayHead = dayHeaders.find(th => th.innerHTML.substr(8,2) === day)
     let hour = (parseInt(time.substring(0, 2)) + 1)
     let table = document.querySelector("table")
-    if (!!dayIndex) {
-        return table.rows[hour].cells[dayIndex+1]           
+    if (!!dayHead) {
+        return table.rows[hour].cells[dayHead.cellIndex]           
     }
 }
 
@@ -132,7 +121,6 @@ function fetchMeals(){
         return response.json()
     })
     .then(function(object){
-        console.log(object.data)
         renderMeals(object.data)
     })
 }
