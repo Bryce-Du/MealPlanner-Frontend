@@ -43,9 +43,12 @@ document.addEventListener('click', (e) => {
     } else if (e.target.id === `ingredient-add`) {
         e.preventDefault()
         let ingrForm = document.getElementById("ingredient-form")
-        ingrForm.innerHTML += `
-            <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist"></input>
-        `
+        const newInput = document.createElement("input")
+        newInput.setAttribute("class", "ingredient-input")
+        newInput.setAttribute("name", "ingredients")
+        newInput.setAttribute("id", `ingredient-${ingredientFormId++}`)
+        newInput.setAttribute("list", "ingredient-datalist")
+        ingrForm.appendChild(newInput)
     }
 })
 
@@ -53,42 +56,59 @@ document.addEventListener("submit", (e) => {
     let name = document.querySelector("#name").value
     let mealTime = document.querySelector("#mealTime").value
     console.log(mealTime)
-    let ingredient = document.querySelector("#ingredient-0").value
-    submitMeal(name, mealTime, ingredient)
+    let ingredients = document.querySelectorAll(".ingredient-input")
+    submitMeal(name, mealTime, ingredients)
     document.getElementById("right-sidebar").innerHTML = ""
     e.preventDefault()
 })
 
-function submitMeal(name, mealTime, ingredient){
+function submitMeal(name, mealTime, ingredients){
+    let ingrArr = []
+    ingredients.forEach(ingr => ingrArr.push(ingr.value))
     return fetch(mealURL, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/json"
         },
         body: JSON.stringify({
-          name: name,
-          mealtime: mealTime,
-          ingredient: ingredient
+            meal:
+            {
+                name: name,
+                mealtime: mealTime,
+            },
+            ingredients: ingrArr
         })
-      })
-      .then(function(response){
+    })
+    .then(function(response){
         return response.json()
-      })
-      .then(function(object){
-        renderMeal(getCellFromMealTime(object.data.attributes.mealtime), object.data.attributes)
-      })
+    })
+    .then(function(object){
+        console.log(object.data)
+        renderMeal(getCellFromMealTime(object.data.attributes.mealtime), object.data)
+    })
 }
 
 function getCellFromMealTime(mealtimeString){
     let time = mealtimeString.split("T")[1]
     let day = new Date(mealtimeString)
+    let today = new Date()
     let dayHeaders = Array.from(document.querySelectorAll(".day-header"))
-    let dayIndex = dayHeaders.find(th => th.innerHTML === day.toDateString()).cellIndex
+    let dayIndex = 0
+    console.log(day.toDateString(), today.toDateString())
+    if (day.toDateString() === today.toDateString()){
+        dayIndex = 1
+    } else {
+        dayIndex = dayHeaders.find(th => th.innerHTML === day.toDateString())
+        if (!!dayIndex) {
+            dayIndex = dayIndex.cellIndex
+        }
+    }
+    console.log(dayIndex)
     let hour = (parseInt(time.substring(0, 2)) + 1)
     let table = document.querySelector("table")
     if (!!dayIndex) {
-        return table.rows[hour].cells[dayIndex]           
+        return table.rows[hour].cells[dayIndex+1]           
     }
 }
 
