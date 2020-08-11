@@ -37,10 +37,7 @@ document.addEventListener('click', (e) => {
     } else if (e.target.classList[0] === "bg-primary") {
         clearLastSelection()
         let mealCell = e.target
-        const rightCol = document.getElementById("right-sidebar")
-        rightCol.innerHTML = `
-            <h3>
-        `
+        fetchMeal(mealCell.id)
     }
 })
 
@@ -80,7 +77,6 @@ function getCellFromMealTime(mealtimeString){
     let day = new Date(mealtimeString)
     let dayHeaders = Array.from(document.querySelectorAll(".day-header"))
     let dayIndex = dayHeaders.find(th => th.innerHTML === day.toDateString()).cellIndex
-    console.log(dayIndex)
     let hour = (parseInt(time.substring(0, 2)) + 1)
     let table = document.querySelector("table")
     if (!!dayIndex) {
@@ -90,14 +86,15 @@ function getCellFromMealTime(mealtimeString){
 
 function renderMeals(mealArray){
     mealArray.forEach(meal => {
-        renderMeal(getCellFromMealTime(meal.attributes.mealtime), meal.attributes)
+        renderMeal(getCellFromMealTime(meal.attributes.mealtime), meal)
     })
 }
 
-function renderMeal(mealCell, mealAttr){
+function renderMeal(mealCell, meal){
     if (!!mealCell){
         mealCell.setAttribute("class", "bg-primary")
-        mealCell.innerHTML = mealAttr.name
+        mealCell.innerHTML = meal.attributes.name
+        mealCell.id = meal.id
     }
 }
 
@@ -112,6 +109,33 @@ function fetchMeals(){
     })
 }
 
+function fetchMeal(mealID){
+    fetch(mealURL + `/${mealID}`)
+    .then(function(response){
+        return response.json()
+    })
+    .then(function(object){
+        const rightCol = document.getElementById("right-sidebar")
+        rightCol.innerHTML = mealDetailsHTML(object.data)
+        console.log(object.data)
+    })
+}
+
+function mealDetailsHTML(meal){
+    let date = new Date(meal.attributes.mealtime)
+    const ingredientLIs = (string, ingr) => string + "<li>" + ingr.name + "</li>"
+    
+    return `
+        <h3>${meal.attributes.name}</h3>
+        <p>Made on ${date.toDateString()}</p>
+        <p>Calories: </p>
+        <h5>Ingredients:</h5>
+        <ul>
+            ${meal.attributes.ingredients.reduce(ingredientLIs, "")}
+        </ul>
+    `
+}
+
 function fetchIngredients(){
     return fetch(ingredientURL)
     .then(function(response){
@@ -120,7 +144,6 @@ function fetchIngredients(){
     .then(function(object){
         ingredients = object.data
         ingredientDatalist()
-        console.log(ingredients)
     })
 }
 
