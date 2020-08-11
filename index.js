@@ -3,6 +3,7 @@ const ingredientURL = "http://localhost:3000/api/ingredients"
 
 let ingredients
 
+
 document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
     fetchMeals()
@@ -10,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 document.addEventListener('click', (e) => {
+    console.log()
     if (e.target.outerHTML === "<td></td>"){
         if (e.target.innerHTML === ""){
             let cell = e.target
@@ -27,12 +29,13 @@ document.addEventListener('click', (e) => {
                     <label>Name:<input name="name" id="name"></label><br>
                     <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
                     <label>Ingredients:</label><br>
-                    <input name="ingredient" id="ingredient-${ingredientFormId++}">
+                    <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist">
                     <br><br><input type="submit" value="Add Meal">
                 </form>
             `
-            
         }
+    } else if (e.target.classList[0] === "ingredient-input") {
+        console.log("blippity")
     }
 })
 
@@ -40,11 +43,12 @@ document.addEventListener("submit", (e) => {
     console.log(e.target)
     let name = document.querySelector("#name").value
     let mealTime = document.querySelector("#mealTime").value
-    submitMeal(name, mealTime)
+    let ingredient = document.querySelector("#ingredient-0").value
+    submitMeal(name, mealTime, ingredient)
     e.preventDefault()
 })
 
-function submitMeal(name, mealTime){
+function submitMeal(name, mealTime, ingredient){
     return fetch(mealURL, {
         method: "POST",
         headers: {
@@ -53,7 +57,8 @@ function submitMeal(name, mealTime){
         },
         body: JSON.stringify({
           name: name,
-          mealtime: mealTime
+          mealtime: mealTime,
+          ingredient: ingredient
         })
       })
       .then(function(response){
@@ -107,8 +112,16 @@ function fetchIngredients(){
     })
     .then(function(object){
         ingredients = object.data
+        ingredientDatalist()
         console.log(ingredients)
     })
+}
+
+function ingredientDatalist(){
+    const ingredientsDL = document.createElement("datalist")
+    ingredientsDL.id = "ingredient-datalist"
+    ingredients.forEach(ingredient => ingredientsDL.innerHTML += `<option>${ingredient.attributes.name}</option>`)
+    document.querySelector('body').appendChild(ingredientsDL)
 }
 
 function makeWeek(){
@@ -165,6 +178,9 @@ function clearLastSelection(){
     document.querySelectorAll(".bg-success").forEach(cell => cell.setAttribute("class", ""))
 }
 
-function autocompleteIngredient(input){
-
+function autocompleteIngredient(){
+    let input = document.querySelector(".ingredient-input")
+    input.addEventListener("input", (e) => {
+        console.log(this.value)
+    })
 }
