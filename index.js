@@ -2,7 +2,7 @@ const mealURL = "http://localhost:3000/api/meals"
 const ingredientURL = "http://localhost:3000/api/ingredients"
 
 let ingredients
-
+let ingredientFormId = 0
 
 document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
@@ -22,14 +22,16 @@ document.addEventListener('click', (e) => {
             const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
             const timeText = cell.parentElement.firstChild.innerHTML
             const time = ((cell.parentElement.rowIndex-1) + ":00")
-            let ingredientFormId = 0
             rightCol.innerHTML = `
                 <h3>Add a meal at ${timeText} on ${day}</h3>
                 <form action="${mealURL}" method="POST" autocomplete="off">
                     <label>Name:<input name="name" id="name"></label><br>
                     <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
                     <label>Ingredients:</label><br>
-                    <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist">
+                    <div id="ingredient-form">
+                        <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist">
+                    </div>
+                    <br><button id="ingredient-add">Add More Ingredients</button>
                     <br><br><input type="submit" value="Add Meal">
                 </form>
             `
@@ -38,6 +40,12 @@ document.addEventListener('click', (e) => {
         clearLastSelection()
         let mealCell = e.target
         fetchMeal(mealCell.id)
+    } else if (e.target.id === `ingredient-add`) {
+        e.preventDefault()
+        let ingrForm = document.getElementById("ingredient-form")
+        ingrForm.innerHTML += `
+            <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist"></input>
+        `
     }
 })
 
