@@ -34,17 +34,17 @@ document.addEventListener('click', (e) => {
                 </form>
             `
         }
-    } else if (e.target.classList[0] === "ingredient-input") {
-        console.log("blippity")
+    } else if (e.target.classList[0] === "bg-primary") {
+        
     }
 })
 
 document.addEventListener("submit", (e) => {
-    console.log(e.target)
     let name = document.querySelector("#name").value
     let mealTime = document.querySelector("#mealTime").value
     let ingredient = document.querySelector("#ingredient-0").value
     submitMeal(name, mealTime, ingredient)
+    document.getElementById("right-sidebar").innerHTML = ""
     e.preventDefault()
 })
 
