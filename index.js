@@ -35,7 +35,12 @@ document.addEventListener('click', (e) => {
             `
         }
     } else if (e.target.classList[0] === "bg-primary") {
-        
+        let mealCell = e.target
+        mealCell.setAttribute("class", "bg-success")
+        const rightCol = document.getElementById("right-sidebar")
+        rightCol.innerHTML = `
+            <h3>
+        `
     }
 })
 
@@ -89,7 +94,7 @@ function renderMeals(mealArray){
 
 function renderMeal(mealCell, mealAttr){
     if (!!mealCell){
-        mealCell.setAttribute("class", "bg-primary text-white")
+        mealCell.setAttribute("class", "bg-primary")
         mealCell.innerHTML = mealAttr.name
     }
 }
