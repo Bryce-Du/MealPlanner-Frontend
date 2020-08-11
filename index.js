@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.addEventListener('click', (e) => {
     console.log()
-    if (e.target.outerHTML === "<td></td>"){
+    if (e.target.outerHTML === "<td></td>" || e.target.outerHTML === `<td class=""></td>`){
         if (e.target.innerHTML === ""){
             let cell = e.target
             clearLastSelection()
@@ -35,8 +35,8 @@ document.addEventListener('click', (e) => {
             `
         }
     } else if (e.target.classList[0] === "bg-primary") {
+        clearLastSelection()
         let mealCell = e.target
-        mealCell.setAttribute("class", "bg-success")
         const rightCol = document.getElementById("right-sidebar")
         rightCol.innerHTML = `
             <h3>
@@ -47,6 +47,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener("submit", (e) => {
     let name = document.querySelector("#name").value
     let mealTime = document.querySelector("#mealTime").value
+    console.log(mealTime)
     let ingredient = document.querySelector("#ingredient-0").value
     submitMeal(name, mealTime, ingredient)
     document.getElementById("right-sidebar").innerHTML = ""
@@ -75,14 +76,15 @@ function submitMeal(name, mealTime, ingredient){
 }
 
 function getCellFromMealTime(mealtimeString){
-    let [date, time] = mealtimeString.split("T")
-    let dateKey = new Date(date)
+    let time = mealtimeString.split("T")[1]
+    let day = new Date(mealtimeString)
     let dayHeaders = Array.from(document.querySelectorAll(".day-header"))
-    let day = dayHeaders.find(th => th.innerHTML === dateKey.toDateString())
+    let dayIndex = dayHeaders.find(th => th.innerHTML === day.toDateString()).cellIndex
+    console.log(dayIndex)
     let hour = (parseInt(time.substring(0, 2)) + 1)
     let table = document.querySelector("table")
-    if (!!day) {
-        return table.rows[hour].cells[day.cellIndex + 1]           
+    if (!!dayIndex) {
+        return table.rows[hour].cells[dayIndex]           
     }
 }
 
