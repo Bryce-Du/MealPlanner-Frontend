@@ -140,11 +140,12 @@ function fetchMeal(mealID){
 function mealDetailsHTML(meal){
     let date = new Date(meal.attributes.mealtime)
     const ingredientLIs = (string, ingr) => string + "<li>" + ingr.name + "</li>"
-    
+    console.log(meal.attributes)
+    let calories = meal.attributes.ingredients.reduce(((total,ingr) => total + ingr.calories), 0)
     return `
         <h3>${meal.attributes.name}</h3>
         <p>Made on ${date.toDateString()}</p>
-        <p>Calories: </p>
+        <p>Calories: ${calories}</p>
         <h5>Ingredients:</h5>
         <ul>
             ${meal.attributes.ingredients.reduce(ingredientLIs, "")}
@@ -173,13 +174,15 @@ function ingredientDatalist(){
 function makeWeek(){
     const week = document.createElement('div')
     week.innerHTML = `
-        <div class="row">
+        <div class="row vh-100">
             <div class="col-3 bg-secondary"></div>
             <div class="col-6 bg-light">
-                <table class="table table-bordered table-striped table-sm">
-                    ${weekdayHeaders()}
-                    ${makeHours()}
-                </table>
+                <div class="row vh-100 overflow-auto">
+                    <table class="table table-bordered table-striped table-sm">
+                        ${weekdayHeaders()}
+                        ${makeHours()}
+                    </table>
+                </div>
             </div>
             <div class="col-3 bg-secondary" id="right-sidebar"></div>
         </div>
