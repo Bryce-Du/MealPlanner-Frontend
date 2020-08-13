@@ -112,6 +112,8 @@ function renderMeal(mealCell, meal){
         mealCell.setAttribute("class", "bg-primary")
         mealCell.innerHTML = meal.attributes.name
         mealCell.id = meal.id
+        let footer = document.getElementById("calorie-footer")
+        footer.cells[mealCell.cellIndex].innerHTML = parseInt(footer.cells[mealCell.cellIndex].innerHTML) + mealCalories(meal)
     }
 }
 
@@ -137,15 +139,18 @@ function fetchMeal(mealID){
     })
 }
 
+function mealCalories(meal){
+    return meal.attributes.ingredients.reduce(((total,ingr) => total + ingr.calories), 0)
+}
+
 function mealDetailsHTML(meal){
     let date = new Date(meal.attributes.mealtime)
     const ingredientLIs = (string, ingr) => string + "<li>" + ingr.name + "</li>"
     console.log(meal.attributes)
-    let calories = meal.attributes.ingredients.reduce(((total,ingr) => total + ingr.calories), 0)
     return `
         <h3>${meal.attributes.name}</h3>
         <p>Made on ${date.toDateString()}</p>
-        <p>Calories: ${calories}</p>
+        <p>Calories: ${mealCalories(meal)}</p>
         <h5>Ingredients:</h5>
         <ul>
             ${meal.attributes.ingredients.reduce(ingredientLIs, "")}
@@ -177,10 +182,11 @@ function makeWeek(){
         <div class="row vh-100">
             <div class="col-3 bg-secondary"></div>
             <div class="col-6 bg-light">
-                <div class="row vh-100 overflow-auto">
+                <div class="row overflow-auto vh-100">
                     <table class="table table-bordered table-striped table-sm">
                         ${weekdayHeaders()}
                         ${makeHours()}
+                        ${makeFooter()}
                     </table>
                 </div>
             </div>
@@ -215,12 +221,20 @@ function makeHours(){
     return rowHTML
 }
 
-function makeCells(){
+function makeCells(content = ""){
     let cellHTML = ""
     for (let j=0; j<7; j++){
-        cellHTML += "<td></td>"
+        cellHTML += `<td>${content}</td>`
     }
     return cellHTML
+}
+
+function makeFooter(){
+    return `
+        <tr class="bg-danger" id="calorie-footer">
+            <th scope="row">Total Cals:</th>${makeCells(0)}
+        </tr>
+    `
 }
 
 function clearLastSelection(){
