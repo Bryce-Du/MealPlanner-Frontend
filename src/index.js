@@ -11,35 +11,19 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 document.addEventListener('click', (e) => {
-    console.log()
+    const rightCol = document.getElementById("right-sidebar")
     if (e.target.outerHTML === "<td></td>" || e.target.outerHTML === `<td class=""></td>`){
         if (e.target.innerHTML === ""){
+            ingredientFormId = 0
             let cell = e.target
             clearLastSelection()
             cell.setAttribute("class", "bg-success")
-            const rightCol = document.getElementById("right-sidebar")
-            // let timeSlot = cell.parentElement.rowIndex
-            const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
-            const timeText = cell.parentElement.firstChild.innerHTML
-            const time = ((cell.parentElement.rowIndex-1) + ":00")
-            rightCol.innerHTML = `
-                <h3>Add a meal at ${timeText} on ${day}</h3>
-                <form action="${mealURL}" method="POST" autocomplete="off">
-                    <label>Name:<input name="name" id="name"></label><br>
-                    <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
-                    <label>Ingredients:</label><br>
-                    <div id="ingredient-form">
-                        <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist">
-                    </div>
-                    <br><button id="ingredient-add">Add More Ingredients</button>
-                    <br><br><input type="submit" value="Add Meal">
-                </form>
-            `
+            rightCol.innerHTML = mealForm(cell, "POST")
         }
     } else if (e.target.classList[0] === "bg-primary") {
         clearLastSelection()
         let mealCell = e.target
-        fetchMeal(mealCell.id)
+        rightCol.innerHTML = Meal.all.find(meal => meal.id === mealCell.id).detailsHTML()
     } else if (e.target.id === `ingredient-add`) {
         e.preventDefault()
         let ingrForm = document.getElementById("ingredient-form")
@@ -49,20 +33,59 @@ document.addEventListener('click', (e) => {
         newInput.setAttribute("id", `ingredient-${ingredientFormId++}`)
         newInput.setAttribute("list", "ingredient-datalist")
         ingrForm.appendChild(newInput)
+    } else if (e.target.id === `edit-button`) {
+        let meal = Meal.all.find(meal => meal.id === e.target.dataset.id)
+        rightCol.innerHTML = mealForm(meal.getCellFromMealTime(), "PATCH", meal)
     }
 })
 
 document.addEventListener("submit", (e) => {
-    let name = document.querySelector("#name").value
-    let mealTime = document.querySelector("#mealTime").value
-    console.log(mealTime)
-    let ingredients = document.querySelectorAll(".ingredient-input")
-    submitMeal(name, mealTime, ingredients)
-    document.getElementById("right-sidebar").innerHTML = ""
     e.preventDefault()
+    let name = document.querySelector("#name").value
+    let mealtime = document.querySelector("#mealtime").value
+    let id = document.querySelector("#mealID")
+    let ingredients = document.querySelectorAll(".ingredient-input")
+    let rightCol = document.getElementById("right-sidebar")
+    if(e.target.id === "create-form"){
+        submitMeal(name, mealtime, ingredients)
+        rightCol.innerHTML = ""
+    } else if(e.target.id === "edit-form"){
+        patchMeal(name, mealtime, ingredients, id.value)
+    }
 })
+function mealForm(cell, method, meal = null){
+    const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
+    const timeText = cell.parentElement.firstChild.innerHTML
+    const time = ((cell.parentElement.rowIndex-1) + ":00")
+    return formHTML = `
+        <h3>${!meal ? "Add Meal" : "Update Meal"} at ${timeText} on ${day}</h3>
+        <form action="${!meal ? mealURL : mealURL + "/" + meal.id} method="${method}" autocomplete="off" id="${method === "POST" ? "create" : "edit"}-form">
+            <input type="hidden" name="mealtime" id="mealtime" value="${day} ${time}">
+            ${!!meal ? `<input type="hidden" name="mealID" id="mealID" value="${meal.id}">`: ""}
+            <label>Name:<input name="name" id="name" ${!!meal ? `value="${meal.name}"`: ""}></label><br>
+            <label>Ingredients:</label><br>
+            <div id="ingredient-form">
+                ${ingredientInputs(meal)}
+            </div>
+            <br><button id="ingredient-add">Add More Ingredients</button>
+            <br><br><input type="submit" value="${!meal ? `Add Meal` : `Update Meal`}">
+        </form>
+    `
+}
 
-function submitMeal(name, mealTime, ingredients){
+function ingredientInputs(meal){
+    let ingrInputs=""
+    if(!!meal){
+        meal.ingredients.forEach(ingr => {
+            ingrInputs += `<input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist" value="${ingr.name}"></input>`
+        })
+    }else{
+        ingrInputs += `<input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist"></input>`
+    }
+    return ingrInputs
+}
+
+function submitMeal(name, mealtime, ingredients){
     let ingrArr = []
     ingredients.forEach(ingr => ingrArr.push(ingr.value))
     return fetch(mealURL, {
@@ -75,7 +98,7 @@ function submitMeal(name, mealTime, ingredients){
             meal:
             {
                 name: name,
-                mealtime: mealTime,
+                mealtime: mealtime,
             },
             ingredients: ingrArr
         })
@@ -84,37 +107,39 @@ function submitMeal(name, mealTime, ingredients){
         return response.json()
     })
     .then(function(object){
-        console.log(object.data)
-        renderMeal(getCellFromMealTime(object.data.attributes.mealtime), object.data)
+        const newMeal = new Meal(object.data.id, object.data.attributes)
+        newMeal.render()
     })
 }
 
-function getCellFromMealTime(mealtimeString){
-    let time = mealtimeString.split("T")[1]
-    let day = mealtimeString.substr(8,2)
-    let dayHeaders = Array.from(document.querySelectorAll(".day-header"))
-    let dayHead = dayHeaders.find(th => th.innerHTML.substr(8,2) === day)
-    let hour = (parseInt(time.substring(0, 2)) + 1)
-    let table = document.querySelector("table")
-    if (!!dayHead) {
-        return table.rows[hour].cells[dayHead.cellIndex]           
-    }
-}
-
-function renderMeals(mealArray){
-    mealArray.forEach(meal => {
-        renderMeal(getCellFromMealTime(meal.attributes.mealtime), meal)
+function patchMeal(name, mealtime, ingredients, id){
+    let ingrArr = []
+    ingredients.forEach(ingr => ingrArr.push(ingr.value))
+    fetch((mealURL + "/" + id), {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify({
+            meal:
+            {
+                name: name,
+                mealtime: mealtime,
+            },
+            ingredients: ingrArr,
+            id: id
+        })
     })
-}
-
-function renderMeal(mealCell, meal){
-    if (!!mealCell){
-        mealCell.setAttribute("class", "bg-primary")
-        mealCell.innerHTML = meal.attributes.name
-        mealCell.id = meal.id
-        let footer = document.getElementById("calorie-footer")
-        footer.cells[mealCell.cellIndex].innerHTML = parseInt(footer.cells[mealCell.cellIndex].innerHTML) + mealCalories(meal)
-    }
+    .then(function(response){
+        return response.json()
+    })
+    .then(function(object){
+        let meal = Meal.all.find(meal => meal.id === object.data.id)
+        meal.update(object.data)
+        meal.render()
+        document.getElementById("right-sidebar").innerHTML = meal.detailsHTML()
+    })
 }
 
 function fetchMeals(){
@@ -122,40 +147,12 @@ function fetchMeals(){
     .then(function(response){
         return response.json()
     })
-    .then(function(object){
-        renderMeals(object.data)
+    .then(meals => {
+        meals.data.forEach(meal => {
+            const newMeal = new Meal(meal.id, meal.attributes)
+            newMeal.render()
+        })  
     })
-}
-
-function fetchMeal(mealID){
-    fetch(mealURL + `/${mealID}`)
-    .then(function(response){
-        return response.json()
-    })
-    .then(function(object){
-        const rightCol = document.getElementById("right-sidebar")
-        rightCol.innerHTML = mealDetailsHTML(object.data)
-        console.log(object.data)
-    })
-}
-
-function mealCalories(meal){
-    return meal.attributes.ingredients.reduce(((total,ingr) => total + ingr.calories), 0)
-}
-
-function mealDetailsHTML(meal){
-    let date = new Date(meal.attributes.mealtime)
-    const ingredientLIs = (string, ingr) => string + "<li>" + ingr.name + "</li>"
-    console.log(meal.attributes)
-    return `
-        <h3>${meal.attributes.name}</h3>
-        <p>Made on ${date.toDateString()}</p>
-        <p>Calories: ${mealCalories(meal)}</p>
-        <h5>Ingredients:</h5>
-        <ul>
-            ${meal.attributes.ingredients.reduce(ingredientLIs, "")}
-        </ul>
-    `
 }
 
 function fetchIngredients(){
