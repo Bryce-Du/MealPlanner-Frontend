@@ -39,7 +39,8 @@ document.addEventListener('click', (e) => {
     } else if (e.target.classList[0] === "bg-primary") {
         clearLastSelection()
         let mealCell = e.target
-        fetchMeal(mealCell.id)
+        const rightCol = document.getElementById("right-sidebar")
+        rightCol.innerHTML = Meal.all.find(meal => meal.id === mealCell.id).detailsHTML()
     } else if (e.target.id === `ingredient-add`) {
         e.preventDefault()
         let ingrForm = document.getElementById("ingredient-form")
@@ -84,37 +85,34 @@ function submitMeal(name, mealTime, ingredients){
         return response.json()
     })
     .then(function(object){
-        console.log(object.data)
-        renderMeal(getCellFromMealTime(object.data.attributes.mealtime), object.data)
+        const newMeal = new Meal(object.data.id, object.data.attributes)
+        newMeal.render()
     })
 }
 
-function getCellFromMealTime(mealtimeString){
-    let time = mealtimeString.split("T")[1]
-    let day = mealtimeString.substr(8,2)
-    let dayHeaders = Array.from(document.querySelectorAll(".day-header"))
-    let dayHead = dayHeaders.find(th => th.innerHTML.substr(8,2) === day)
-    let hour = (parseInt(time.substring(0, 2)) + 1)
-    let table = document.querySelector("table")
-    if (!!dayHead) {
-        return table.rows[hour].cells[dayHead.cellIndex]           
-    }
-}
-
-function renderMeals(mealArray){
-    mealArray.forEach(meal => {
-        renderMeal(getCellFromMealTime(meal.attributes.mealtime), meal)
+function patchMeals(){
+    fetch(mealURL, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify({
+            meal:
+            {
+                name: name,
+                mealtime: mealTime,
+            },
+            ingredients: ingrArr
+        })
     })
-}
-
-function renderMeal(mealCell, meal){
-    if (!!mealCell){
-        mealCell.setAttribute("class", "bg-primary")
-        mealCell.innerHTML = meal.attributes.name
-        mealCell.id = meal.id
-        let footer = document.getElementById("calorie-footer")
-        footer.cells[mealCell.cellIndex].innerHTML = parseInt(footer.cells[mealCell.cellIndex].innerHTML) + mealCalories(meal)
-    }
+    .then(function(response){
+        return response.json()
+    })
+    .then(function(object){
+        const newMeal = new Meal(object.data.id, object.data.attributes)
+        newMeal.render()
+    })
 }
 
 function fetchMeals(){
@@ -122,40 +120,12 @@ function fetchMeals(){
     .then(function(response){
         return response.json()
     })
-    .then(function(object){
-        renderMeals(object.data)
+    .then(meals => {
+        meals.data.forEach(meal => {
+            const newMeal = new Meal(meal.id, meal.attributes)
+            newMeal.render()
+        })  
     })
-}
-
-function fetchMeal(mealID){
-    fetch(mealURL + `/${mealID}`)
-    .then(function(response){
-        return response.json()
-    })
-    .then(function(object){
-        const rightCol = document.getElementById("right-sidebar")
-        rightCol.innerHTML = mealDetailsHTML(object.data)
-        console.log(object.data)
-    })
-}
-
-function mealCalories(meal){
-    return meal.attributes.ingredients.reduce(((total,ingr) => total + ingr.calories), 0)
-}
-
-function mealDetailsHTML(meal){
-    let date = new Date(meal.attributes.mealtime)
-    const ingredientLIs = (string, ingr) => string + "<li>" + ingr.name + "</li>"
-    console.log(meal.attributes)
-    return `
-        <h3>${meal.attributes.name}</h3>
-        <p>Made on ${date.toDateString()}</p>
-        <p>Calories: ${mealCalories(meal)}</p>
-        <h5>Ingredients:</h5>
-        <ul>
-            ${meal.attributes.ingredients.reduce(ingredientLIs, "")}
-        </ul>
-    `
 }
 
 function fetchIngredients(){
