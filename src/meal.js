@@ -45,6 +45,7 @@ class Meal{
             <ul>
                 ${this.ingredients.reduce(ingredientLIs, "")}
             </ul>
+            <button id="edit-button">Edit Meal</button>
         `
     }
 }

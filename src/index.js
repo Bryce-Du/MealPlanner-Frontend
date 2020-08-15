@@ -11,30 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 document.addEventListener('click', (e) => {
-    console.log()
     if (e.target.outerHTML === "<td></td>" || e.target.outerHTML === `<td class=""></td>`){
         if (e.target.innerHTML === ""){
+            ingredientFormId = 0
             let cell = e.target
             clearLastSelection()
             cell.setAttribute("class", "bg-success")
             const rightCol = document.getElementById("right-sidebar")
-            // let timeSlot = cell.parentElement.rowIndex
-            const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
-            const timeText = cell.parentElement.firstChild.innerHTML
-            const time = ((cell.parentElement.rowIndex-1) + ":00")
-            rightCol.innerHTML = `
-                <h3>Add a meal at ${timeText} on ${day}</h3>
-                <form action="${mealURL}" method="POST" autocomplete="off">
-                    <label>Name:<input name="name" id="name"></label><br>
-                    <input type="hidden" name="mealTime" id="mealTime" value="${day} ${time}">
-                    <label>Ingredients:</label><br>
-                    <div id="ingredient-form">
-                        <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist">
-                    </div>
-                    <br><button id="ingredient-add">Add More Ingredients</button>
-                    <br><br><input type="submit" value="Add Meal">
-                </form>
-            `
+            rightCol.innerHTML = mealForm(cell, "POST")
         }
     } else if (e.target.classList[0] === "bg-primary") {
         clearLastSelection()
@@ -50,20 +34,43 @@ document.addEventListener('click', (e) => {
         newInput.setAttribute("id", `ingredient-${ingredientFormId++}`)
         newInput.setAttribute("list", "ingredient-datalist")
         ingrForm.appendChild(newInput)
+    } else if (e.target.id === `edit-button`) {
+        
     }
 })
 
 document.addEventListener("submit", (e) => {
-    let name = document.querySelector("#name").value
-    let mealTime = document.querySelector("#mealTime").value
-    console.log(mealTime)
-    let ingredients = document.querySelectorAll(".ingredient-input")
-    submitMeal(name, mealTime, ingredients)
-    document.getElementById("right-sidebar").innerHTML = ""
     e.preventDefault()
+    let name = document.querySelector("#name").value
+    let mealtime = document.querySelector("#mealtime").value
+    let ingredients = document.querySelectorAll(".ingredient-input")
+    let rightCol = document.getElementById("right-sidebar")
+    if(e.target.id === "create-form"){
+        submitMeal(name, mealtime, ingredients)
+        rightCol.innerHTML = ""
+    } else if(e.target.id === "edit-form"){
+        patchMeal(name, mealtime, ingredients)
+    }
 })
-
-function submitMeal(name, mealTime, ingredients){
+function mealForm(cell, method){
+    const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
+    const timeText = cell.parentElement.firstChild.innerHTML
+    const time = ((cell.parentElement.rowIndex-1) + ":00")
+    return `
+        <h3>Add a meal at ${timeText} on ${day}</h3>
+        <form action="${mealURL}" method="${method}" autocomplete="off" id="${(method === "POST" ? "create" : "edit")}-form">
+            <label>Name:<input name="name" id="name"></label><br>
+            <input type="hidden" name="mealtime" id="mealtime" value="${day} ${time}">
+            <label>Ingredients:</label><br>
+            <div id="ingredient-form">
+                <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist">
+            </div>
+            <br><button id="ingredient-add">Add More Ingredients</button>
+            <br><br><input type="submit" value="Add Meal">
+        </form>
+    `
+}
+function submitMeal(name, mealtime, ingredients){
     let ingrArr = []
     ingredients.forEach(ingr => ingrArr.push(ingr.value))
     return fetch(mealURL, {
@@ -76,7 +83,7 @@ function submitMeal(name, mealTime, ingredients){
             meal:
             {
                 name: name,
-                mealtime: mealTime,
+                mealtime: mealtime,
             },
             ingredients: ingrArr
         })
@@ -90,7 +97,9 @@ function submitMeal(name, mealTime, ingredients){
     })
 }
 
-function patchMeals(){
+function patchMeal(name, mealtime, ingredients){
+    let ingrArr = []
+    ingredients.forEach(ingr => ingrArr.push(ingr.value))
     fetch(mealURL, {
         method: "PATCH",
         headers: {
@@ -101,7 +110,7 @@ function patchMeals(){
             meal:
             {
                 name: name,
-                mealtime: mealTime,
+                mealtime: mealtime,
             },
             ingredients: ingrArr
         })
