@@ -11,19 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 document.addEventListener('click', (e) => {
+    const rightCol = document.getElementById("right-sidebar")
     if (e.target.outerHTML === "<td></td>" || e.target.outerHTML === `<td class=""></td>`){
         if (e.target.innerHTML === ""){
             ingredientFormId = 0
             let cell = e.target
             clearLastSelection()
             cell.setAttribute("class", "bg-success")
-            const rightCol = document.getElementById("right-sidebar")
             rightCol.innerHTML = mealForm(cell, "POST")
         }
     } else if (e.target.classList[0] === "bg-primary") {
         clearLastSelection()
         let mealCell = e.target
-        const rightCol = document.getElementById("right-sidebar")
         rightCol.innerHTML = Meal.all.find(meal => meal.id === mealCell.id).detailsHTML()
     } else if (e.target.id === `ingredient-add`) {
         e.preventDefault()
@@ -35,7 +34,8 @@ document.addEventListener('click', (e) => {
         newInput.setAttribute("list", "ingredient-datalist")
         ingrForm.appendChild(newInput)
     } else if (e.target.id === `edit-button`) {
-        
+        let meal = Meal.all.find(meal => meal.id === e.target.dataset.id)
+        rightCol.innerHTML = mealForm(meal.getCellFromMealTime(), "PATCH", meal)
     }
 })
 
@@ -43,33 +43,48 @@ document.addEventListener("submit", (e) => {
     e.preventDefault()
     let name = document.querySelector("#name").value
     let mealtime = document.querySelector("#mealtime").value
+    let id = document.querySelector("#mealID")
     let ingredients = document.querySelectorAll(".ingredient-input")
     let rightCol = document.getElementById("right-sidebar")
     if(e.target.id === "create-form"){
         submitMeal(name, mealtime, ingredients)
         rightCol.innerHTML = ""
     } else if(e.target.id === "edit-form"){
-        patchMeal(name, mealtime, ingredients)
+        patchMeal(name, mealtime, ingredients, id.value)
     }
 })
-function mealForm(cell, method){
+function mealForm(cell, method, meal = null){
     const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
     const timeText = cell.parentElement.firstChild.innerHTML
     const time = ((cell.parentElement.rowIndex-1) + ":00")
-    return `
-        <h3>Add a meal at ${timeText} on ${day}</h3>
-        <form action="${mealURL}" method="${method}" autocomplete="off" id="${(method === "POST" ? "create" : "edit")}-form">
-            <label>Name:<input name="name" id="name"></label><br>
+    return formHTML = `
+        <h3>${!meal ? "Add Meal" : "Update Meal"} at ${timeText} on ${day}</h3>
+        <form action="${!meal ? mealURL : mealURL + "/" + meal.id} method="${method}" autocomplete="off" id="${method === "POST" ? "create" : "edit"}-form">
             <input type="hidden" name="mealtime" id="mealtime" value="${day} ${time}">
+            ${!!meal ? `<input type="hidden" name="mealID" id="mealID" value="${meal.id}">`: ""}
+            <label>Name:<input name="name" id="name" ${!!meal ? `value="${meal.name}"`: ""}></label><br>
             <label>Ingredients:</label><br>
             <div id="ingredient-form">
-                <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist">
+                ${ingredientInputs(meal)}
             </div>
             <br><button id="ingredient-add">Add More Ingredients</button>
-            <br><br><input type="submit" value="Add Meal">
+            <br><br><input type="submit" value="${!meal ? `Add Meal` : `Update Meal`}">
         </form>
     `
 }
+
+function ingredientInputs(meal){
+    let ingrInputs=""
+    if(!!meal){
+        meal.ingredients.forEach(ingr => {
+            ingrInputs += `<input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist" value="${ingr.name}"></input>`
+        })
+    }else{
+        ingrInputs += `<input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist"></input>`
+    }
+    return ingrInputs
+}
+
 function submitMeal(name, mealtime, ingredients){
     let ingrArr = []
     ingredients.forEach(ingr => ingrArr.push(ingr.value))
@@ -97,10 +112,10 @@ function submitMeal(name, mealtime, ingredients){
     })
 }
 
-function patchMeal(name, mealtime, ingredients){
+function patchMeal(name, mealtime, ingredients, id){
     let ingrArr = []
     ingredients.forEach(ingr => ingrArr.push(ingr.value))
-    fetch(mealURL, {
+    fetch((mealURL + "/" + id), {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -112,15 +127,18 @@ function patchMeal(name, mealtime, ingredients){
                 name: name,
                 mealtime: mealtime,
             },
-            ingredients: ingrArr
+            ingredients: ingrArr,
+            id: id
         })
     })
     .then(function(response){
         return response.json()
     })
     .then(function(object){
-        const newMeal = new Meal(object.data.id, object.data.attributes)
-        newMeal.render()
+        let meal = Meal.all.find(meal => meal.id === object.data.id)
+        meal.update(object.data)
+        meal.render()
+        document.getElementById("right-sidebar").innerHTML = meal.detailsHTML()
     })
 }
 

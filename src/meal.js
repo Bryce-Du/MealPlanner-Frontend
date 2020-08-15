@@ -45,8 +45,16 @@ class Meal{
             <ul>
                 ${this.ingredients.reduce(ingredientLIs, "")}
             </ul>
-            <button id="edit-button">Edit Meal</button>
+            <button id="edit-button" data-id="${this.id}">Edit Meal</button>
         `
+    }
+
+    update(data){
+        this.name = data.attributes.name
+        this.mealtime = data.attributes.mealtime
+        this.ingredients = data.attributes.ingredients
+        let currentIndex = Meal.all.findIndex(meal => meal.id === this.id)
+        Meal.all[currentIndex] = this
     }
 }
 Meal.all = [];
