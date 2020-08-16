@@ -19,6 +19,7 @@ document.addEventListener('click', (e) => {
             clearLastSelection()
             cell.setAttribute("class", "bg-success")
             rightCol.innerHTML = mealForm(cell, "POST")
+            document.getElementById("ingredient-form").appendChild(ingredientInputs())
         }
     } else if (e.target.classList[0] === "bg-primary") {
         clearLastSelection()
@@ -26,17 +27,14 @@ document.addEventListener('click', (e) => {
         rightCol.innerHTML = Meal.all.find(meal => meal.id === mealCell.id).detailsHTML()
     } else if (e.target.id === `ingredient-add`) {
         e.preventDefault()
-        let ingrForm = document.getElementById("ingredient-form")
-        ingrForm.innerHTML += ingredientInputs()
+        document.getElementById("ingredient-form").appendChild(ingredientInputs())
     } else if (e.target.id === `edit-button`) {
         let meal = Meal.all.find(meal => meal.id === e.target.dataset.id)
         rightCol.innerHTML = mealForm(meal.getCellFromMealTime(), "PATCH", meal)
+        document.getElementById("ingredient-form").appendChild(ingredientInputs(meal))
     } else if (e.target.classList[0] === 'delete-ingredient-button'){
         e.preventDefault()
-        let deletingID = e.target.id.split("-")[2]
-        let deletingEl = document.getElementById(`ingredient-${deletingID}`)
-        document.getElementById("ingredient-form").removeChild(deletingEl)
-        document.getElementById("ingredient-form").removeChild(e.target)
+        e.target.parentElement.parentElement.removeChild(e.target.parentElement) // hey dad, tell grandpa to DELETE US ALL
     }
 })
 
@@ -65,9 +63,7 @@ function mealForm(cell, method, meal = null){
             ${!!meal ? `<input type="hidden" name="mealID" id="mealID" value="${meal.id}">`: ""}
             <label>Name:<input name="name" id="name" ${!!meal ? `value="${meal.name}"`: ""}></label><br>
             <label>Ingredients:</label><br>
-            <div id="ingredient-form">
-                ${ingredientInputs(meal)}
-            </div>
+            <div id="ingredient-form"></div>
             <br><button id="ingredient-add">Add More Ingredients</button>
             <br><br><input type="submit" value="${!meal ? `Add Meal` : `Update Meal`}">
         </form>
@@ -75,26 +71,31 @@ function mealForm(cell, method, meal = null){
 }
 
 function ingredientInputs(meal = null){
-    let ingrInputs=""
+    let div = document.createElement('div')
+    div.classList.add("row")
+    div.id = ingredientFormId
     if(!!meal){
         meal.ingredients.forEach(ingr => {
-            ingrInputs += `
+            div.innerHTML += `
                 <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId}" list="ingredient-datalist" value="${ingr.name}"></input>
-                <button id="delete-ingredient-${ingredientFormId++}" class="delete-ingredient-button">X</button>
+                <input type="number" name="quantity" id="ingredient-${ingredientFormId}-quantity" value="${ingr.quantity}"></input>
+                <button id="delete-ingredient-${ingredientFormId++}" class="delete-ingredient-button">X</button><br>
             `
         })
     }else{
-        ingrInputs += `
+        div.innerHTML += `
             <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId}" list="ingredient-datalist"></input>
-            <button id="delete-ingredient-${ingredientFormId++}" class="delete-ingredient-button">X</button>
+            <input type="number" name="quantity" id="ingredient-${ingredientFormId}-quantity" value="1"></input>
+            <button id="delete-ingredient-${ingredientFormId++}" class="delete-ingredient-button">X</button><br>
         `
     }
-    return ingrInputs
+    return div
 }
 
 function submitMeal(name, mealtime, ingredients){
     let ingrArr = []
     ingredients.forEach(ingr => ingrArr.push(ingr.value))
+    debugger
     return fetch(mealURL, {
         method: "POST",
         headers: {
