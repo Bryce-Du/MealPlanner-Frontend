@@ -14,8 +14,8 @@ class Meal{
             mealCell.setAttribute("class", "bg-primary")
             mealCell.innerHTML = this.name
             mealCell.id = this.id
-            let footer = document.getElementById("calorie-footer")
-            footer.cells[mealCell.cellIndex].innerHTML = parseInt(footer.cells[mealCell.cellIndex].innerHTML) + this.calories()
+            // let footer = document.getElementById("calorie-footer")
+            // footer.cells[mealCell.cellIndex].innerHTML = parseInt(footer.cells[mealCell.cellIndex].innerHTML) + this.calories()
         }
     }
 

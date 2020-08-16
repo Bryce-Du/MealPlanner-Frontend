@@ -120,6 +120,7 @@ function submitMeal(name, mealtime, ingredients){
     .then(function(object){
         const newMeal = new Meal(object.data.id, object.data.attributes)
         newMeal.render()
+        updateCalorieTotals()
     })
 }
 
@@ -148,6 +149,7 @@ function patchMeal(name, mealtime, ingredients, id){
         meal.update(object.data)
         meal.render()
         document.getElementById("right-sidebar").innerHTML = meal.detailsHTML()
+        updateCalorieTotals()
     })
 }
 
@@ -160,7 +162,8 @@ function fetchMeals(){
         meals.data.forEach(meal => {
             const newMeal = new Meal(meal.id, meal.attributes)
             newMeal.render()
-        })  
+        }) 
+        updateCalorieTotals() 
     })
 }
 
@@ -202,11 +205,11 @@ function makeWeek(){
     document.querySelector('.container-fluid').appendChild(week)
 }
 
-function weekdayHeaders(){
+function weekdayHeaders(offset = 0){
     let headerHTML = "<tr><th></th>"
     let d = new Date()
     let today = d.getDate()
-    for(let i=0; i<7; i++){
+    for(let i=offset; i<offset+7; i++){
         d.setDate(today+i)
         headerHTML += `<th class="day-header" scope="col">${d.toDateString()}</th>`
     }
@@ -241,6 +244,19 @@ function makeFooter(){
             <th scope="row">Total Cals:</th>${makeCells(0)}
         </tr>
     `
+}
+
+function updateCalorieTotals(){
+    let displayedMeals = []
+    document.querySelectorAll(".bg-primary").forEach(displayed => displayedMeals.push(displayed))
+    let meals = displayedMeals.map(mealCell => Meal.all.find(meal => meal.id === mealCell.id))
+    let footer = document.getElementById("calorie-footer")
+    for (let i=1;i<8;i++){
+        footer.cells[i].innerHTML = 0
+    }
+    meals.forEach(meal => {
+        footer.cells[meal.getCellFromMealTime().cellIndex].innerHTML = parseInt(footer.cells[meal.getCellFromMealTime().cellIndex].innerHTML) + meal.calories()
+    })
 }
 
 function clearLastSelection(){
