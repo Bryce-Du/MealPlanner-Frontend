@@ -27,17 +27,7 @@ document.addEventListener('click', (e) => {
     } else if (e.target.id === `ingredient-add`) {
         e.preventDefault()
         let ingrForm = document.getElementById("ingredient-form")
-        const newInput = document.createElement("input")
-        newInput.setAttribute("class", "ingredient-input")
-        newInput.setAttribute("name", "ingredients")
-        newInput.setAttribute("id", `ingredient-${ingredientFormId}`)
-        newInput.setAttribute("list", "ingredient-datalist")
-        const deleteButton = document.createElement("button")
-        deleteButton.setAttribute("id", `delete-ingredient-${ingredientFormId++}`)
-        deleteButton.setAttribute("class", "delete-ingredient-button")
-        deleteButton.innerHTML = "X"
-        ingrForm.appendChild(newInput)
-        ingrForm.appendChild(deleteButton)
+        ingrForm.innerHTML += ingredientInputs()
     } else if (e.target.id === `edit-button`) {
         let meal = Meal.all.find(meal => meal.id === e.target.dataset.id)
         rightCol.innerHTML = mealForm(meal.getCellFromMealTime(), "PATCH", meal)
@@ -84,7 +74,7 @@ function mealForm(cell, method, meal = null){
     `
 }
 
-function ingredientInputs(meal){
+function ingredientInputs(meal = null){
     let ingrInputs=""
     if(!!meal){
         meal.ingredients.forEach(ingr => {
@@ -94,7 +84,10 @@ function ingredientInputs(meal){
             `
         })
     }else{
-        ingrInputs += `<input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist"></input>`
+        ingrInputs += `
+            <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId}" list="ingredient-datalist"></input>
+            <button id="delete-ingredient-${ingredientFormId++}" class="delete-ingredient-button">X</button>
+        `
     }
     return ingrInputs
 }
