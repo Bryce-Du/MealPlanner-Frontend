@@ -30,12 +30,23 @@ document.addEventListener('click', (e) => {
         const newInput = document.createElement("input")
         newInput.setAttribute("class", "ingredient-input")
         newInput.setAttribute("name", "ingredients")
-        newInput.setAttribute("id", `ingredient-${ingredientFormId++}`)
+        newInput.setAttribute("id", `ingredient-${ingredientFormId}`)
         newInput.setAttribute("list", "ingredient-datalist")
+        const deleteButton = document.createElement("button")
+        deleteButton.setAttribute("id", `delete-ingredient-${ingredientFormId++}`)
+        deleteButton.setAttribute("class", "delete-ingredient-button")
+        deleteButton.innerHTML = "X"
         ingrForm.appendChild(newInput)
+        ingrForm.appendChild(deleteButton)
     } else if (e.target.id === `edit-button`) {
         let meal = Meal.all.find(meal => meal.id === e.target.dataset.id)
         rightCol.innerHTML = mealForm(meal.getCellFromMealTime(), "PATCH", meal)
+    } else if (e.target.classList[0] === 'delete-ingredient-button'){
+        e.preventDefault()
+        let deletingID = e.target.id.split("-")[2]
+        let deletingEl = document.getElementById(`ingredient-${deletingID}`)
+        document.getElementById("ingredient-form").removeChild(deletingEl)
+        document.getElementById("ingredient-form").removeChild(e.target)
     }
 })
 
@@ -77,7 +88,10 @@ function ingredientInputs(meal){
     let ingrInputs=""
     if(!!meal){
         meal.ingredients.forEach(ingr => {
-            ingrInputs += `<input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist" value="${ingr.name}"></input>`
+            ingrInputs += `
+                <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId}" list="ingredient-datalist" value="${ingr.name}"></input>
+                <button id="delete-ingredient-${ingredientFormId++}" class="delete-ingredient-button">X</button>
+            `
         })
     }else{
         ingrInputs += `<input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId++}" list="ingredient-datalist"></input>`
