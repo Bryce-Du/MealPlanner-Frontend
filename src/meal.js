@@ -4,6 +4,7 @@ class Meal{
         this.name = attributes.name
         this.mealtime = attributes.mealtime
         this.ingredients = attributes.ingredients
+        this.mealIngredients = attributes.meals_ingredients
         Meal.all.push(this)
     }
     
@@ -36,7 +37,7 @@ class Meal{
     
     detailsHTML(){
         let date = new Date(this.mealtime)
-        const ingredientLIs = (string, ingr) => string + "<li>" + ingr.name + "</li>"
+        const ingredientLIs = (string, ingr) => `${string}<li>${this.ingredientQuantity(ingr.id)} ${ingr.name}</li>`
         return `
             <h3>${this.name}</h3>
             <p>Made on ${date.toDateString()}</p>
@@ -49,10 +50,16 @@ class Meal{
         `
     }
 
+    ingredientQuantity(id){
+        let index = this.ingredients.findIndex(ingr => ingr.id === id)
+        return this.mealIngredients[index].quantity
+    }
+
     update(data){
         this.name = data.attributes.name
         this.mealtime = data.attributes.mealtime
         this.ingredients = data.attributes.ingredients
+        this.mealIngredients = data.attributes.meals_ingredients
         let currentIndex = Meal.all.findIndex(meal => meal.id === this.id)
         Meal.all[currentIndex] = this
     }

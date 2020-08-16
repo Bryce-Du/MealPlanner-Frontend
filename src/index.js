@@ -34,7 +34,7 @@ document.addEventListener('click', (e) => {
         document.getElementById("ingredient-form").appendChild(ingredientInputs(meal))
     } else if (e.target.classList[0] === 'delete-ingredient-button'){
         e.preventDefault()
-        e.target.parentElement.parentElement.removeChild(e.target.parentElement) // hey dad, tell grandpa to DELETE US ALL
+        e.target.parentElement.parentElement.removeChild(e.target.parentElement)
     }
 })
 
@@ -45,11 +45,16 @@ document.addEventListener("submit", (e) => {
     let id = document.querySelector("#mealID")
     let ingredients = document.querySelectorAll(".ingredient-input")
     let rightCol = document.getElementById("right-sidebar")
+    let ingrArr = []
+    ingredients.forEach(ingr => {
+        let quantity = document.getElementById(`ingredient-${ingr.id.split("-")[1]}-quantity`).value 
+        ingrArr.push({name: ingr.value, quantity: quantity})
+    })
     if(e.target.id === "create-form"){
-        submitMeal(name, mealtime, ingredients)
+        submitMeal(name, mealtime, ingrArr)
         rightCol.innerHTML = ""
     } else if(e.target.id === "edit-form"){
-        patchMeal(name, mealtime, ingredients, id.value)
+        patchMeal(name, mealtime, ingrArr, id.value)
     }
 })
 function mealForm(cell, method, meal = null){
@@ -72,30 +77,28 @@ function mealForm(cell, method, meal = null){
 
 function ingredientInputs(meal = null){
     let div = document.createElement('div')
-    div.classList.add("row")
+    div.classList.add("row", "px-2")
     div.id = ingredientFormId
     if(!!meal){
-        meal.ingredients.forEach(ingr => {
+        meal.ingredients.forEach((ingr, index) => {
+            
             div.innerHTML += `
                 <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId}" list="ingredient-datalist" value="${ingr.name}"></input>
-                <input type="number" name="quantity" id="ingredient-${ingredientFormId}-quantity" value="${ingr.quantity}"></input>
+                <input class="ingredient-quantity-input" type="number" name="quantity" id="ingredient-${ingredientFormId}-quantity" value="${meal.mealIngredients[index].quantity}" style="width: 40px"></input>
                 <button id="delete-ingredient-${ingredientFormId++}" class="delete-ingredient-button">X</button><br>
             `
         })
     }else{
         div.innerHTML += `
             <input class="ingredient-input" name="ingredients" id="ingredient-${ingredientFormId}" list="ingredient-datalist"></input>
-            <input type="number" name="quantity" id="ingredient-${ingredientFormId}-quantity" value="1"></input>
-            <button id="delete-ingredient-${ingredientFormId++}" class="delete-ingredient-button">X</button><br>
+            <input type="number" name="quantity" id="ingredient-${ingredientFormId}-quantity" value="1" style="width: 40px"></input>
+            <button id="delete-ingredient-${ingredientFormId++}" class="delete-ingredient-button">X</button>
         `
     }
     return div
 }
 
 function submitMeal(name, mealtime, ingredients){
-    let ingrArr = []
-    ingredients.forEach(ingr => ingrArr.push(ingr.value))
-    debugger
     return fetch(mealURL, {
         method: "POST",
         headers: {
@@ -108,7 +111,7 @@ function submitMeal(name, mealtime, ingredients){
                 name: name,
                 mealtime: mealtime,
             },
-            ingredients: ingrArr
+            ingredients: ingredients
         })
     })
     .then(function(response){
@@ -121,8 +124,6 @@ function submitMeal(name, mealtime, ingredients){
 }
 
 function patchMeal(name, mealtime, ingredients, id){
-    let ingrArr = []
-    ingredients.forEach(ingr => ingrArr.push(ingr.value))
     fetch((mealURL + "/" + id), {
         method: "PATCH",
         headers: {
@@ -135,7 +136,7 @@ function patchMeal(name, mealtime, ingredients, id){
                 name: name,
                 mealtime: mealtime,
             },
-            ingredients: ingrArr,
+            ingredients: ingredients,
             id: id
         })
     })
@@ -185,8 +186,8 @@ function makeWeek(){
     const week = document.createElement('div')
     week.innerHTML = `
         <div class="row vh-100">
-            <div class="col-3 bg-secondary"></div>
-            <div class="col-6 bg-light">
+            <div class="col-1 bg-secondary"></div>
+            <div class="col-8 bg-light">
                 <div class="row overflow-auto vh-100">
                     <table class="table table-bordered table-striped table-sm">
                         ${weekdayHeaders()}
