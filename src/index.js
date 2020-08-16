@@ -3,6 +3,7 @@ const ingredientURL = "http://localhost:3000/api/ingredients"
 
 let ingredients
 let ingredientFormId = 0
+let dayOffset = 0
 
 document.addEventListener('DOMContentLoaded', () => {
     makeWeek()
@@ -11,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 document.addEventListener('click', (e) => {
+    e.preventDefault()
     const rightCol = document.getElementById("right-sidebar")
     if (e.target.outerHTML === "<td></td>" || e.target.outerHTML === `<td class=""></td>`){
         if (e.target.innerHTML === ""){
@@ -26,15 +28,21 @@ document.addEventListener('click', (e) => {
         let mealCell = e.target
         rightCol.innerHTML = Meal.all.find(meal => meal.id === mealCell.id).detailsHTML()
     } else if (e.target.id === `ingredient-add`) {
-        e.preventDefault()
         document.getElementById("ingredient-form").appendChild(ingredientInputs())
     } else if (e.target.id === `edit-button`) {
         let meal = Meal.all.find(meal => meal.id === e.target.dataset.id)
         rightCol.innerHTML = mealForm(meal.getCellFromMealTime(), "PATCH", meal)
         document.getElementById("ingredient-form").appendChild(ingredientInputs(meal))
-    } else if (e.target.classList[0] === 'delete-ingredient-button'){
-        e.preventDefault()
+    } else if (e.target.classList[0] === 'delete-ingredient-button') {
         e.target.parentElement.parentElement.removeChild(e.target.parentElement)
+    } else if (e.target.classList[0] === "navigation") {
+        let headerRow = document.querySelector('tbody').firstChild
+        console.log(e.target.innerHTML)    
+        if (e.target.innerHTML === "&gt;") {
+            headerRow.innerHTML = weekdayHeaders(--dayOffset)
+        } else if (e.target.innerHTML === "&lt;") {
+            headerRow.innerHTML = weekdayHeaders(++dayOffset)
+        }
     }
 })
 
@@ -189,11 +197,15 @@ function makeWeek(){
     const week = document.createElement('div')
     week.innerHTML = `
         <div class="row vh-100">
-            <div class="col-1 bg-secondary"></div>
+            <div class="col-1 bg-secondary" id="left-sidebar">
+                Day:
+                <button class="navigation"><</button>
+                <button class="navigation">></button>
+            </div>
             <div class="col-8 bg-light">
                 <div class="row overflow-auto vh-100">
                     <table class="table table-bordered table-striped table-sm">
-                        ${weekdayHeaders()}
+                        <tr>${weekdayHeaders()}</tr>
                         ${makeHours()}
                         ${makeFooter()}
                     </table>
@@ -206,14 +218,13 @@ function makeWeek(){
 }
 
 function weekdayHeaders(offset = 0){
-    let headerHTML = "<tr><th></th>"
+    let headerHTML = "<th></th>"
     let d = new Date()
     let today = d.getDate()
     for(let i=offset; i<offset+7; i++){
         d.setDate(today+i)
         headerHTML += `<th class="day-header" scope="col">${d.toDateString()}</th>`
     }
-    headerHTML += "</tr>"
     return headerHTML
 }
 
