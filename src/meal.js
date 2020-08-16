@@ -32,7 +32,7 @@ class Meal{
     }
 
     calories(){
-        return this.ingredients.reduce(((total,ingr) => total + ingr.calories), 0)
+        return this.ingredients.reduce(((total,ingr,index) => total + (this.mealIngredients[index].quantity * ingr.calories)), 0)
     }
     
     detailsHTML(){
