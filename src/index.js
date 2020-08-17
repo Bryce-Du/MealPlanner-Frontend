@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 document.addEventListener('click', (e) => {
-    e.preventDefault()
     const rightCol = document.getElementById("right-sidebar")
     if (e.target.outerHTML === "<td></td>" || e.target.outerHTML === `<td class=""></td>`){
         if (e.target.innerHTML === ""){
@@ -28,22 +27,41 @@ document.addEventListener('click', (e) => {
         let mealCell = e.target
         rightCol.innerHTML = Meal.all.find(meal => meal.id === mealCell.id).detailsHTML()
     } else if (e.target.id === `ingredient-add`) {
+        e.preventDefault()
         document.getElementById("ingredient-form").appendChild(ingredientInputs())
     } else if (e.target.id === `edit-button`) {
         let meal = Meal.all.find(meal => meal.id === e.target.dataset.id)
         rightCol.innerHTML = mealForm(meal.getCellFromMealTime(), "PATCH", meal)
         document.getElementById("ingredient-form").appendChild(ingredientInputs(meal))
     } else if (e.target.classList[0] === 'delete-ingredient-button') {
+        e.preventDefault()
         e.target.parentElement.parentElement.removeChild(e.target.parentElement)
-    } else if (e.target.classList[0] === "navigation") {
-        let headerRow = document.querySelector('tbody').firstChild
-        console.log(e.target.innerHTML)    
-        if (e.target.innerHTML === "&gt;") {
-            headerRow.innerHTML = weekdayHeaders(--dayOffset)
-        } else if (e.target.innerHTML === "&lt;") {
-            headerRow.innerHTML = weekdayHeaders(++dayOffset)
+    } else if (e.target.classList[0] === "show-meals"){
+        rightCol.innerHTML = mealSearchBar()
+        fetchMeals().then(object => {
+            console.log(object)
+            object.data.forEach(meal => {
+                let foundMeal = Meal.all.find(m => m.id === meal.id)
+                console.log(foundMeal)
+                rightCol.innerHTML += foundMeal.detailsHTML()
+            })
+        })
+    } else if (e.target.id === "meal-search") {
+        let searchName = document.getElementById("meal-search-bar").value
+        let foundMeal = Meal.all.find(meal => meal.name === searchName)
+        if (!!foundMeal) {
+            rightCol.innerHTML = mealSearchBar() + foundMeal.detailsHTML()
         }
     }
+        // } else if (e.target.classList[0] === "navigation") {
+    //     let headerRow = document.querySelector('tbody').firstChild
+    //     console.log(e.target.innerHTML)    
+    //     if (e.target.innerHTML === "&gt;") {
+    //         headerRow.innerHTML = weekdayHeaders(--dayOffset)
+    //     } else if (e.target.innerHTML === "&lt;") {
+    //         headerRow.innerHTML = weekdayHeaders(++dayOffset)
+    //     }
+    // }
 })
 
 document.addEventListener("submit", (e) => {
@@ -58,12 +76,13 @@ document.addEventListener("submit", (e) => {
         let quantity = document.getElementById(`ingredient-${ingr.id.split("-")[1]}-quantity`).value 
         ingrArr.push({name: ingr.value, quantity: quantity})
     })
+    
     if(e.target.id === "create-form"){
         submitMeal(name, mealtime, ingrArr)
         rightCol.innerHTML = ""
     } else if(e.target.id === "edit-form"){
         patchMeal(name, mealtime, ingrArr, id.value)
-    }
+    } 
 })
 function mealForm(cell, method, meal = null){
     const day = cell.parentElement.parentElement.firstChild.cells[cell.cellIndex].innerHTML
@@ -78,7 +97,7 @@ function mealForm(cell, method, meal = null){
             <label>Ingredients:</label><br>
             <div id="ingredient-form"></div>
             <br><button id="ingredient-add">Add More Ingredients</button>
-            <br><br><input type="submit" value="${!meal ? `Add Meal` : `Update Meal`}">
+            <br><br><input type="submit" ${!meal ? `value="Add Meal"` : `value="Update Meal"`}">
         </form>
     `
 }
@@ -104,6 +123,13 @@ function ingredientInputs(meal = null){
         `
     }
     return div
+}
+
+function mealSearchBar(){
+    return `
+        <input type="text" name="mealName" id="meal-search-bar">
+        <input type="submit" id="meal-search" value="Search">
+    `
 }
 
 function submitMeal(name, mealtime, ingredients){
@@ -171,7 +197,8 @@ function fetchMeals(){
             const newMeal = new Meal(meal.id, meal.attributes)
             newMeal.render()
         }) 
-        updateCalorieTotals() 
+        updateCalorieTotals()
+        return meals
     })
 }
 
@@ -198,9 +225,7 @@ function makeWeek(){
     week.innerHTML = `
         <div class="row vh-100">
             <div class="col-1 bg-secondary" id="left-sidebar">
-                Day:
-                <button class="navigation"><</button>
-                <button class="navigation">></button>
+                <button class="show-meals">Show All Meals</button>
             </div>
             <div class="col-8 bg-light">
                 <div class="row overflow-auto vh-100">
