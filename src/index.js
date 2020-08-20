@@ -39,10 +39,8 @@ document.addEventListener('click', (e) => {
     } else if (e.target.classList[0] === "show-meals"){
         rightCol.innerHTML = mealSearchBar()
         fetchMeals().then(object => {
-            console.log(object)
             object.data.forEach(meal => {
                 let foundMeal = Meal.all.find(m => m.id === meal.id)
-                console.log(foundMeal)
                 rightCol.innerHTML += foundMeal.detailsHTML()
             })
         })
